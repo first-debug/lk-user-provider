@@ -11,8 +11,8 @@ type App struct {
 	config *config.Config
 }
 
-func New(config *config.Config) *App {
-	db := database.GetDB()
+func New(config *config.Config, db_url string) *App {
+	db := database.GetDB(db_url)
 	srv := server.NewServer(db)
 	return &App{
 		server: srv,
