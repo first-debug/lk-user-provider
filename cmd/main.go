@@ -24,11 +24,13 @@ func main() {
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg)
+	log.Info("Start application...")
 	ongoingCtx, stopOngoingGraceful := context.WithCancel(context.Background())
 	wg := &sync.WaitGroup{}
 
 	a, err := app.New(ongoingCtx, wg, cfg, slog.Default(), &isShuttingDown)
 	if err != nil {
+		log.Error("Не удалось инициализировать приложение.", sl.Err(err))
 		stop()
 	}
 
@@ -41,6 +43,7 @@ func main() {
 		default:
 			err = a.Run()
 			if err != nil {
+				log.Error("Ошибка при запуске приложения.", sl.Err(err))
 				stop()
 
 			}
@@ -49,6 +52,7 @@ func main() {
 
 	<-rootCtx.Done()
 	isShuttingDown.Store(true)
+	log.Info("Получен сигнал отключения, выключение...")
 	if cfg.Env == "prod" {
 		log.Info("Распростронение информации о завершении работы...")
 		time.Sleep(cfg.Readiness.DrainDelay)
