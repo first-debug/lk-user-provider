@@ -1,49 +1,53 @@
 package server
 
 import (
-	"log"
-	"main/graph"
-	"main/internal/database"
+	"context"
+	"fmt"
+	"log/slog"
+	"net"
 	"net/http"
-
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/lru"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/vektah/gqlparser/v2/ast"
+	"sync/atomic"
 )
 
 type Server struct {
-	schema *handler.Server
+	ctx            context.Context
+	log            *slog.Logger
+	isShuttingDown *atomic.Bool
+	router         *http.ServeMux
+	server         http.Server
 }
 
-func NewServer(db database.Database) *Server {
-	schema := handler.New(graph.NewExecutableSchema(graph.Config{
-		Resolvers: &graph.Resolver{
-			DB: db,
+func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Bool) *Server {
+	s := &Server{
+		ctx:            ctx,
+		log:            log,
+		isShuttingDown: isShuttingDown,
+		router:         http.NewServeMux(),
+	}
+	s.router.HandleFunc("GET /ping", s.handlePing)
+	return s
+}
+
+func (s *Server) handlePing(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "pong")
+}
+
+func (s *Server) Start(env, addr string) {
+
+	s.server = http.Server{
+		Addr:    addr,
+		Handler: s.router,
+		BaseContext: func(_ net.Listener) context.Context {
+			return s.ctx
 		},
-	}))
-
-	schema.AddTransport(transport.Options{})
-	schema.AddTransport(transport.GET{})
-	schema.AddTransport(transport.POST{})
-	schema.SetQueryCache(lru.New[*ast.QueryDocument](1000))
-	schema.Use(extension.Introspection{})
-	schema.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New[string](100),
-	})
-
-	return &Server{
-		schema: schema,
+	}
+	err := s.server.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		s.log.Error("failed to start server", "error", err)
 	}
 }
 
-func (server *Server) Start(addr string, port string) {
-
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", server.schema)
-
-	log.Printf("Запуск HTTP сервера по адресу %s", addr)
-	log.Fatal(http.ListenAndServe(port, nil))
+func (s *Server) ShutDown(shutDownCtx context.Context) error {
+	return s.server.Shutdown(shutDownCtx)
 }
