@@ -1,0 +1,8 @@
+url: ""
+port: "8080"
+logger: 
+  level: "DEBUG"
+  show_path_call: false
+shutdown: 
+  period: 15s
+  hard-period: 3s
