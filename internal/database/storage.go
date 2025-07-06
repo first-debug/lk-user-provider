@@ -1,5 +1,5 @@
 package database
 
 type UserStorage interface {
-	GetUser(email string)
+	GetUser(email string) *User
 }
