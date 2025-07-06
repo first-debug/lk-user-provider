@@ -1,3 +1,5 @@
 .env*
 !.env.template
 api/graphql/*
+config_*.yml
+!config_template.yml
