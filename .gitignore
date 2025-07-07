@@ -1,1 +1,6 @@
 .env
+config_*.yml
+!config_template.yml
+
+models_gen.go
+generated.go

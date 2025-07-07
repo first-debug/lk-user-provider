@@ -6,20 +6,36 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"main/graph/model"
 )
 
 // UserAuth is the resolver for the userAuth field.
 func (r *queryResolver) UserAuth(ctx context.Context, email string) (*model.UserAuthResult, error) {
-	student := r.DB.AuthUser(email)
-	return &model.UserAuthResult{
-		Email:        student.Email,
-		HashPassword: student.HashPassword,
-		Role:         &student.Role,
-	}, nil
+	panic(fmt.Errorf("not implemented: UserAuth - userAuth"))
 }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *queryResolver) AuthUser(ctx context.Context, email string) (*model.AuthUser, error) {
+	users := &database.User{}
+	user := r.DB.AuthUser(email)
+	return &model.AuthUser{
+		ID:           &user.ID,
+		Email:        &user.Email,
+		HashPassword: &users.HashPassword,
+		Role:         &users.Role,
+		Version:      &users.Version,
+	}, nil
+}
+*/

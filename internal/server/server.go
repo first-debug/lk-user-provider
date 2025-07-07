@@ -1,10 +1,15 @@
 package server
 
 import (
-	"log"
+	"context"
+	"log/slog"
 	"main/graph"
 	"main/internal/database"
+	"net"
 	"net/http"
+	"sync/atomic"
+
+	"main/internal/server/middleware"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -15,16 +20,19 @@ import (
 )
 
 type Server struct {
-	schema *handler.Server
+	ctx            context.Context
+	log            *slog.Logger
+	isShuttingDown *atomic.Bool
+	router         *http.ServeMux
+	server         *http.Server
 }
 
-func NewServer(db database.Database) *Server {
+func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Bool, db database.UserStorage) *Server {
 	schema := handler.New(graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
 			DB: db,
 		},
 	}))
-
 	schema.AddTransport(transport.Options{})
 	schema.AddTransport(transport.GET{})
 	schema.AddTransport(transport.POST{})
@@ -34,16 +42,38 @@ func NewServer(db database.Database) *Server {
 		Cache: lru.New[string](100),
 	})
 
+	router := http.NewServeMux()
+	router.Handle("/",
+		middleware.Chain(playground.Handler("GraphQL playground", "/query"), middleware.Logging(log)))
+	router.Handle("/query", schema)
+
 	return &Server{
-		schema: schema,
+		ctx:            ctx,
+		log:            log,
+		isShuttingDown: isShuttingDown,
+		router:         router,
 	}
 }
 
-func (server *Server) Start(addr string, port string) {
+func (s *Server) Start(env string, addr string) {
+	s.log.Info("starting http server", "addr", addr)
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", server.schema)
+	s.server = &http.Server{
+		Addr:    addr,
+		Handler: s.router,
+		BaseContext: func(_ net.Listener) context.Context {
+			return s.ctx
+		},
+	}
 
-	log.Printf("Запуск HTTP сервера по адресу %s", addr)
-	log.Fatal(http.ListenAndServe(port, nil))
+	err := s.server.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		s.log.Error("failed to start server", "error", err)
+	}
+}
+
+func (s *Server) ShutDown(shutDownCtx context.Context) error {
+	s.isShuttingDown.Store(true)
+	s.log.Info("shutting down server...")
+	return s.server.Shutdown(shutDownCtx)
 }

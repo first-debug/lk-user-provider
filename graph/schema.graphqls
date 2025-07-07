@@ -1,7 +1,8 @@
 type UserAuthResult {
   email: String!
-  hash_password: String!
+  passwordHash: String!
   role: String
+  version: Int
 }
 
 type Query {
