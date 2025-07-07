@@ -7,6 +7,7 @@ import (
 	"main/internal/config"
 	"main/internal/database"
 	"main/internal/server"
+	sl "main/libs/logger"
 	"sync"
 	"sync/atomic"
 )
@@ -19,7 +20,11 @@ type App struct {
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log *slog.Logger, isShutDown *atomic.Bool) (*App, error) {
-	userStorage := database.NewMySQLUserStorage(cfg.DB_URL)
+	userStorage, err := database.NewSQLiteUserStorage(cfg.DB_URL, log)
+	if err != nil {
+		log.Error("Failed connect to database or migration", sl.Err(err))
+		panic(err)
+	}
 	srv := server.NewServer(ctx, log, isShutDown, userStorage)
 	return &App{
 		log:         log,

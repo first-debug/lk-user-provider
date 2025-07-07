@@ -28,7 +28,10 @@ type Config struct {
 }
 
 func MustLoad() *Config {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	configPath := fetchConfigPath()
 	if configPath == "" {
 		panic("config path is empty")

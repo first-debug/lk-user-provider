@@ -7,19 +7,17 @@ package graph
 import (
 	"context"
 	"main/graph/model"
-	"main/internal/database"
 )
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) AuthUser(ctx context.Context, email string) (*model.AuthUser, error) {
-	users := &database.User{}
 	user := r.DB.AuthUser(email)
 	return &model.AuthUser{
 		ID:           &user.ID,
 		Email:        &user.Email,
-		HashPassword: &users.HashPassword,
-		Role:         &users.Role,
-		Version:      &users.Version,
+		HashPassword: &user.HashPassword,
+		Role:         &user.Role,
+		Version:      &user.Version,
 	}, nil
 }
 
