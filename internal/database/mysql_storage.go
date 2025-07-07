@@ -1,8 +1,6 @@
 package database
 
 import (
-	"main/internal/config"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -11,8 +9,9 @@ type MySQLUserStorage struct {
 	DB *gorm.DB
 }
 
-func NewMySQLUserStorage(cfg *config.Config) UserStorage {
-	db, err := gorm.Open(mysql.Open(cfg.DB_URL), &gorm.Config{})
+func NewMySQLUserStorage(db_url string) UserStorage {
+	db, err := gorm.Open(mysql.Open(db_url), &gorm.Config{})
+	db.AutoMigrate(&User{})
 	if err != nil {
 		panic(err)
 	}
@@ -20,6 +19,11 @@ func NewMySQLUserStorage(cfg *config.Config) UserStorage {
 }
 
 func (mysql_db *MySQLUserStorage) GetUser(email string) *User {
+	user := &User{}
+	mysql_db.DB.Where("email = ?", email).First(user)
+	return user
+}
+func (mysql_db *MySQLUserStorage) AuthUser(email string) *User {
 	user := &User{}
 	mysql_db.DB.Where("email = ?", email).First(user)
 	return user

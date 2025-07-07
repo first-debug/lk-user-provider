@@ -15,15 +15,17 @@ type App struct {
 	log         *slog.Logger
 	server      *server.Server
 	cfg         *config.Config
-	userStorage *database.UserStorage
+	userStorage database.UserStorage
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log *slog.Logger, isShutDown *atomic.Bool) (*App, error) {
-	srv := server.NewServer(ctx, log, isShutDown)
+	userStorage := database.NewMySQLUserStorage(cfg.DB_URL)
+	srv := server.NewServer(ctx, log, isShutDown, userStorage)
 	return &App{
-		log:    log,
-		server: srv,
-		cfg:    cfg,
+		log:         log,
+		server:      srv,
+		cfg:         cfg,
+		userStorage: userStorage,
 	}, nil
 }
 
