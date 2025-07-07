@@ -2,18 +2,21 @@ package server
 
 import (
 	"context"
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/lru"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/vektah/gqlparser/v2/ast"
 	"log/slog"
 	"main/graph"
 	"main/internal/database"
 	"net"
 	"net/http"
 	"sync/atomic"
+
+	"main/internal/server/middleware"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 type Server struct {
@@ -40,7 +43,8 @@ func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Boo
 	})
 
 	router := http.NewServeMux()
-	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/",
+		middleware.Chain(playground.Handler("GraphQL playground", "/query"), middleware.Logging(log)))
 	router.Handle("/query", schema)
 
 	return &Server{
