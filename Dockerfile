@@ -7,6 +7,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+RUN go install github.com/first-debug/lk-auth/cmd/schema-fetcher@latest
 
 COPY . .
 
