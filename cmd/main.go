@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/lmittmann/tint"
 	"log/slog"
 	"main/internal/app"
 	"main/internal/config"
@@ -13,6 +12,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/lmittmann/tint"
 )
 
 var isShuttingDown atomic.Bool

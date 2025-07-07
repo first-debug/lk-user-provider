@@ -50,5 +50,4 @@ func (a *App) ShutDown(shutDownCtx context.Context) error {
 	)
 
 	return err
-
 }
