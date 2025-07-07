@@ -15,7 +15,7 @@ func (r *queryResolver) AuthUser(ctx context.Context, email string) (*model.Auth
 	return &model.AuthUser{
 		ID:           &user.ID,
 		Email:        &user.Email,
-		HashPassword: &user.HashPassword,
+		PasswordHash: &user.HashPassword,
 		Role:         &user.Role,
 		Version:      &user.Version,
 	}, nil

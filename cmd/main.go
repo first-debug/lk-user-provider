@@ -28,7 +28,7 @@ func main() {
 	ongoingCtx, stopOngoingGraceful := context.WithCancel(context.Background())
 	wg := &sync.WaitGroup{}
 
-	a, err := app.New(ongoingCtx, wg, cfg, slog.Default(), &isShuttingDown)
+	a, err := app.New(ongoingCtx, wg, cfg, log, &isShuttingDown)
 	if err != nil {
 		log.Error("Не удалось инициализировать приложение.", sl.Err(err))
 		stop()
