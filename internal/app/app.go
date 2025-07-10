@@ -20,12 +20,14 @@ type App struct {
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log *slog.Logger, isShutDown *atomic.Bool) (*App, error) {
-	userStorage, err := database.NewSQLiteUserStorage(cfg.DB_URL, log)
+	userStorage, err := database.NewMySQLUserStorage(cfg.DB_URL, log)
 	if err != nil {
 		log.Error("Failed connect to database or migration", sl.Err(err))
-		panic(err)
+		return nil, err
 	}
+
 	srv := server.NewServer(ctx, log, isShutDown, userStorage)
+
 	return &App{
 		log:         log,
 		server:      srv,
