@@ -4,10 +4,11 @@ go 1.24.4
 
 require (
 	github.com/99designs/gqlgen v0.17.76
-	github.com/first-debug/lk-auth v0.0.1
+	github.com/first-debug/lk-tools v1.0.4
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lmittmann/tint v1.1.2
+	github.com/orandin/slog-gorm v1.4.0
 	github.com/vektah/gqlparser/v2 v2.5.30
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/sqlite v1.6.0

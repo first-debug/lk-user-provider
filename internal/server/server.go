@@ -43,8 +43,11 @@ func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Boo
 	})
 
 	router := http.NewServeMux()
+
 	router.Handle("/",
-		middleware.Chain(playground.Handler("GraphQL playground", "/query"), middleware.Logging(log)))
+		middleware.Chain(playground.Handler("GraphQL playground", "/query"),
+			middleware.Logging(log)),
+	)
 	router.Handle("/query", schema)
 
 	return &Server{
@@ -56,8 +59,6 @@ func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Boo
 }
 
 func (s *Server) Start(env string, addr string) {
-	s.log.Info("starting http server", "addr", addr)
-
 	s.server = &http.Server{
 		Addr:    addr,
 		Handler: s.router,

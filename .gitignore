@@ -5,4 +5,4 @@ config_*.yml
 models_gen.go
 generated.go
 *.db
-schema.graphqls
+schema.graphql*
