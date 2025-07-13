@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"main/internal/config"
 	"main/internal/database"
+	"main/internal/database/sql"
 	"main/internal/server"
 	sl "main/libs/logger"
 	"sync"
@@ -20,7 +21,8 @@ type App struct {
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log *slog.Logger, isShutDown *atomic.Bool) (*App, error) {
-	userStorage, err := database.NewMySQLUserStorage(cfg.DB_URL, log)
+	dialector, dbConfig := sql.InitGorm(cfg, log)
+	userStorage, err := sql.NewSQLStorage(dialector, dbConfig)
 	if err != nil {
 		log.Error("Failed connect to database or migration", sl.Err(err))
 		return nil, err

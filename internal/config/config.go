@@ -14,7 +14,7 @@ type Config struct {
 	Env    string `env:"ENV" env-default:"local"`
 	URL    string `yaml:"url"`
 	Port   string `yaml:"port" env-default:"80"`
-	DB_URL string `env:"DB_URL"`
+	DbUrl  string `env:"DB_URL"`
 	Logger struct {
 		Level        *slog.Level `yaml:"level"`
 		ShowPathCall bool        `yaml:"show_path_call" env-default:"false"`

@@ -11,7 +11,10 @@ import (
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) AuthUser(ctx context.Context, email string) (*model.AuthUser, error) {
-	user := r.DB.AuthUser(email)
+	user, err := r.DB.AuthUser(email)
+	if err != nil {
+		return nil, err
+	}
 	return &model.AuthUser{
 		ID:           &user.ID,
 		Email:        &user.Email,
